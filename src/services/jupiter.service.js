@@ -6,16 +6,16 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { RPC_CONFIG, PROXY_LIST } from '../config/index.js';
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
-const MIN_TOKEN_AMOUNT = 5; // Минимальное количество токенов для продажи
-const MAX_RETRIES = 5; // Максимальное количество попыток
-const RETRY_DELAY = 3000; // Задержка между попытками (2 секунды)
+const MIN_TOKEN_AMOUNT = 5; // Minimum amount of tokens for sale
+const MAX_RETRIES = 5; // Maximum number of attempts
+const RETRY_DELAY = 3000; // Delay between attempts (2 seconds)
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function sellToken(wallet, tokenInfo, tokenMint, tokenAmount, attempt = 1) {
     try {
         try {
-            // Получаем случайный прокси, если включен режим прокси
+            // Get a random proxy if proxy mode is enabled
             const proxyUrl = RPC_CONFIG.USE_MULTI_PROXY === 1 ? 
                 PROXY_LIST[Math.floor(Math.random() * PROXY_LIST.length)].split(':') : null;
             

@@ -89,8 +89,11 @@ export async function getSolPrice() {
         const response = await fetch('https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112');
         const data = await response.json();
         const solPool = data.pairs[0];
+
+        console.log(`Retrieved SOL price: ${solPool.priceUsd} USD`);
         return parseFloat(solPool.priceUsd);
     } catch (error) {
+        console.log(`Unable to fetch SOL price: ${error.message}\n${error.stack}`);
         return 0;
     }
 }

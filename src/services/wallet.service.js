@@ -14,6 +14,7 @@ import { handleSwapTokens } from '../actions/SwapTokens.js';
 import { displayLogo, selectWallets } from '../utils/logger.js';
 import { returnToMainMenu } from '../utils/mainMenuReturn.js';
 import { handleReopenPosition } from '../actions/ReopenPosition.js';
+import { pressEnterToContinue } from '../actions/WalletOperations.js';
 
 export async function displayPositionsTable(wallets,positionCheck = true) {
     const tableData = [];
@@ -124,27 +125,37 @@ export async function walletInfo(wallets, positionCheck = true) {
     const tableData = [];
     const solBalances = [];
     let totalUsdValue = 0;
-    const solPrice = await getSolPrice();
     console.log("\n[⌛] Getting wallet information...");
+  
+    const solPrice = await getSolPrice();
+    console.log(`\n[⌛] SOL price is ${solPrice}`);
 
     const promises = wallets.map(async (wallet) => {
         try {
+            console.log(`\nwallet pk: ${wallet.privateKey}`);
+
             const conn = await getConnection();
             await new Promise(resolve => { setTimeout(resolve, 1000 + Math.random() * 1000) });
             const user = Keypair.fromSecretKey(new Uint8Array(bs58.decode(wallet.privateKey)));
             
-            // Get SOL balance
-            const solBalance = await conn.getBalance(user.publicKey);
-            const solValue = (solBalance / LAMPORTS_PER_SOL).toFixed(4);
-            const solUsdValue = (solValue * solPrice).toFixed(2);
-            
-            solBalances.push({
-                "Wallet address": user.publicKey.toString(),
-                "SOL": solValue,
-                "USD": `$${solUsdValue}`
-            });
-            totalUsdValue += parseFloat(solUsdValue);
+            try {
+                // Get SOL balance
+                const solBalance = await conn.getBalance(user.publicKey);
+                const solValue = (solBalance / LAMPORTS_PER_SOL).toFixed(4);
+                const solUsdValue = (solValue * solPrice).toFixed(2);
+                
+                solBalances.push({
+                    "Wallet address": user.publicKey.toString(),
+                    "SOL": solValue,
+                    "USD": `$${solUsdValue}`
+                });
+                totalUsdValue += parseFloat(solUsdValue);
 
+            } catch (error) {
+                console.error(`Error fetching balance: ${error.message}`);
+                throw error;
+            }
+            
             if (positionCheck) {    // Get tokens
                 const tokens = await conn.getParsedTokenAccountsByOwner(
                     user.publicKey,
@@ -180,7 +191,10 @@ export async function walletInfo(wallets, positionCheck = true) {
                 await Promise.all(tokenPromises);
             }
         } catch (error) {
-            console.error(`~~~ [!] [${wallet.description.slice(0, 4)}..] Error processing wallet | UserInfo.js`);
+            console.error(`~~~ [!] [${wallet.description && typeof wallet.description === 'string' 
+                ? wallet.description.slice(0, 4) 
+                : 'N/A'}..] Error processing wallet | UserInfo.js \r\n${error.stack}`);
+                await pressEnterToContinue();
         }
     });
 

@@ -3,7 +3,7 @@ import { getSolBalance } from './getBalance.js';
 import { question } from './question.js';
 
 export async function logWallets() {
-    console.log("\nДОСТУПНЫЕ КОШЕЛЬКИ: \n=========================");
+    console.log("\nAFFORDABLE WALLETS: \n=========================");
     for (const [key, value] of Object.entries(WALLETS)) {
         const balance = await getSolBalance(value.description);
         console.log(`${key}: ${value.description.slice(0, 4)}...${value.description.slice(-4)} [\x1b[32m${balance.toFixed(2)} SOL\x1b[0m]`);
@@ -13,7 +13,7 @@ export async function logWallets() {
 export async function selectWallets() {
     await logWallets();
 
-    const walletInput = await question("\n[...] Введите номера кошельков через запятую (1,2,3) или '0' для всех: ");
+    const walletInput = await question("\n[...] Enter wallet numbers separated by commas (1,2,3) or '0' for all: ");
     
     if (walletInput === '0') {
         return Object.values(WALLETS);
@@ -23,7 +23,7 @@ export async function selectWallets() {
         .map(num => num.trim())
         .map(num => {
             const wallet = WALLETS[num];
-            if (!wallet) throw new Error(`[!] [${num}] Кошелёк не найден`);
+            if (!wallet) throw new Error(`[!] [${num}] Wallet not found.`);
             return wallet;
         });
 }
@@ -51,13 +51,13 @@ export async function displayLogo() {
 }
 
 export async function strategyType() {
-    console.log('\n[...] Выберите стратегию: ');
+    console.log('\n[...] Choose a strategy: ');
     console.log('1. SPOT');
     console.log('2. BIDASK');
-    const strategyType = await question("\n[...] Введите номер стратегии: ");
+    const strategyType = await question("\n[...] Enter strategy number: ");
     if (strategyType === '1' || strategyType === '2') {
         return strategyType;
     } else {
-        throw new Error('[!] [strategyType] Стратегия не найдена');
+        throw new Error('[!] [strategyType] Strategy not found.');
     }
 }
