@@ -1,12 +1,15 @@
 import pkg from '@solana/web3.js';
 const { PublicKey, Connection } = pkg;
 import { HttpsProxyAgent } from 'https-proxy-agent';
+import dotenv from 'dotenv';
+import { pressEnterToContinue } from '../actions/WalletOperations.js';
+dotenv.config({ path: './.env' });
 
-// Настройки RPC и прокси
+// RPC and proxy settings
 const RPC_CONFIG = {
-    USE_MULTI_RPC: 1, // 0 - используется одна RPCшка, 1 - используется несколько RPCшек
-    USE_MULTI_PROXY: 0, // 0 - не используется прокси, 1 - используется прокси
-    POOL_SIZE: 5,
+    USE_MULTI_RPC: 0, // 0 - one RPC is used, 1 - several RPCs are used
+    USE_MULTI_PROXY: 0, // 0 - no proxy used, 1 - proxy used
+    POOL_SIZE: 1,
 };
 
 const RPC_ENDPOINTS = [
@@ -17,7 +20,6 @@ const RPC_ENDPOINTS = [
 ];
 
 const PROXY_LIST = [
-    "0.0.0.0:0000:username:password",
     "0.0.0.0:0000:username:password"
 ];
 
@@ -77,7 +79,7 @@ class ConnectionPool {
     }
 }
 
-// Перехват ошибок 429
+// Catching 429 errors
 const originalConsoleError = console.error;
 console.error = (...args) => {
     if (args.some(arg => 
@@ -89,7 +91,7 @@ console.error = (...args) => {
     originalConsoleError.apply(console, args);
 };
 
-// Создаем пул соединений
+// Creating a connection pool
 const connectionPool = new ConnectionPool(
     RPC_ENDPOINTS,
     PROXY_LIST,
@@ -100,7 +102,7 @@ const connectionPool = new ConnectionPool(
     }
 );
 
-// Экспорты
+// Exports
 export const connection = connectionPool.getConnection();
 export const getConnection = () => connectionPool.getConnection();
 export const TOTAL_RANGE_INTERVAL = 68;
@@ -111,20 +113,24 @@ export const MAX_PRIORITY_FEE_CREATE_POSITION = 1500000; // Примерно 0.0
 export const TRANSACTION_MODE = 1 // 1 - DEGEN {НЕ ЖДЕТ ПОДТВЕРЖДЕНИЯ ТРАНЗАКЦИИ, СООТВЕТСТВЕННО, МОГУТ БЫТЬ ЕРРОРЫ} 0 - DEGEN {ЖДЕТ ПОДТВЕРЖДЕНИЯ ТРАНЗАКЦИИ}
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
-// Добавляем экспорт RPC_CONFIG и PROXY_LIST
+// Adding export RPC_CONFIG and PROXY_LIST
 export { RPC_CONFIG, PROXY_LIST };
 
-// Конфигурация для свапов юпитера
+// Configuration for Jupiter swaps
 export const SLIPPAGE_BPS = 5 * 100; // 5%
 export const SELL_PRIORITY_FEE = 0.0003 * 1000000000; // 0.0003 SOL
 export const BUY_PRIORITY_FEE = 0.0005 * 1000000000; // 0.0005 SOL
 
+// console.log(`process.env.WALLET_1_PRIVATE_KEY = ${process.env.WALLET_1_PRIVATE_KEY}`);
+// await pressEnterToContinue();
 
-// Кошельки [!] Не советую использовать много кошельков, так как это может привести к ошибкам RPC
+// Wallets [!] I do not recommend using multiple wallets as this can lead to RPC errors
 export const WALLETS = {
     "1": {
-        privateKey: "3CQotVrC6yTc97LoPD8iS5WBLBRGiDYdyxfhVihZJdSA6Z6GXdReKc39CXMPHHaiHdC39vWpG5fdT8mxKBMjP5qZ", // Replace with your actual private key, store securely
-        description: "AwtqB8DqoXrVmL96HkSb8JxRaqAcKUBqkC46oRc996nT"
+        privateKey: process.env.WALLET_1_PRIVATE_KEY, // Loaded from .env
+        description: process.env.WALLET_1_DESCRIPTION // Loaded from .env
+        // privateKey: "3CQotVrC6yTc97LoPD8iS5WBLBRGiDYdyxfhVihZJdSA6Z6GXdReKc39CXMPHHaiHdC39vWpG5fdT8mxKBMjP5qZ", // Replace with your actual private key, store securely
+        // description: "AwtqB8DqoXrVmL96HkSb8JxRaqAcKUBqkC46oRc996nT"
     },
     // "2": {
     //     privateKey: "PLACEHOLDER_PRIVATE_KEY_2", // Replace with your actual private key, store securely
@@ -142,5 +148,5 @@ export const WALLETS = {
     //     privateKey: "PLACEHOLDER_PRIVATE_KEY_5", // Replace with your actual private key, store securely
     //     description: "Your Wallet Address5"
     // },
-    // Добавьте дополнительные кошельки по необходимости, store private keys securely
+    // Add additional wallets as needed, store private keys securely
 };
